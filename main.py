@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import pyautogui
 import time
+import math
 
 pyautogui.PAUSE = 0     #removes .1 delay between pyautogui actions
 
@@ -23,7 +24,7 @@ def running_loop():
             #pyautogui.click(822, 876)
             #pyautogui.click(966, 876)
             #raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
-            
+            #gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
             # 
             #
             
