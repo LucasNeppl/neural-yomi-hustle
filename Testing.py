@@ -24,8 +24,11 @@ def running_loop():
     #leftAttackButtons = np.array([(15, 879), (66, 879), (117, 879), (15, 930), (177, 879), (228, 879), (279, 879), (177, 930), (339, 879), (390, 879), (441, 879), (339, 930), (390, 930), (441, 930), (339, 981), (390, 981), (501, 879), (552, 879), (603, 879), (501, 930), (552, 930), (603, 930), (501, 981), (552, 981), (603, 981), (663, 879), (714, 879), (765, 879), (663, 930), (714, 930), (765, 930), (822, 876)])
     #rightAttackButtons = np.array([(1749, 879), (1800, 879), (1851, 879), (1749, 930), (1587, 879), (1638, 879), (1689, 879), (1587, 930), (1425, 879), (1476, 879), (1527, 879), (1425, 930), (1476, 930), (1527, 930), (1425, 981), (1476, 981), (1263, 879), (1314, 879), (1365, 879), (1263, 930), (1314, 930), (1365, 930), (1263, 981), (1314, 981), (1365, 981), (1101, 879), (1152, 879), (1203, 879), (1101, 930), (1152, 930), (1203, 930), (966, 876)])
 
-    time.sleep(4)
+    leftPlayerState = [1]
+    rightPlayerState = [1]
     sct = MSS()
+
+    time.sleep(4)
 
     while keyboard.is_pressed('q') == False: #run until q is pressed
 
@@ -48,6 +51,7 @@ def running_loop():
         findButtons("left", list_of_left_attack_options, list_of_left_attack_buttons_pos, lockInLeft, target_Window, gray_frame)
         findButtons("right", list_of_right_attack_options, list_of_right_attack_buttons_pos, lockInRight, target_Window, gray_frame)
 
+
         leftAttackOptions = np.array(list_of_left_attack_options)
         leftAttackButtonsPos = np.array(list_of_left_attack_buttons_pos)
         rightAttackOptions = np.array(list_of_right_attack_options)
@@ -58,8 +62,8 @@ def running_loop():
         list_of_right_attack_options.clear()
         list_of_right_attack_buttons_pos.clear()
         
-
         #main attack loop
+        findPlayersState(leftAttackButtonsPos, rightAttackButtonsPos, target_Window, target_Window_Scale)
         scoreArray = gatherAttackScores(leftAttackButtonsPos, rightAttackButtonsPos, target_Window, target_Window_Scale)
 
 
@@ -77,25 +81,25 @@ def running_loop():
 #     # background is 12
 
 #     time.sleep(5)
-#     with mss.MSS() as sct:
-#         raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
-#         gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) # converts to gray scale single value
-#         cv2.imshow('GrayFrame: ', gray_frame)
-#         while keyboard.is_pressed('q') == False: #run until q is pressed
-            
-#             # click hold for both characters before grabbing screenshot
-#             #pyautogui.click(822, 876)
-#             #pyautogui.click(966, 876)
-#             #raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
-#             #gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
-#             # 
-#             #
+#     sct = MSS()
+#     raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
+#     gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) # converts to gray scale single value
+#     cv2.imshow('GrayFrame: ', gray_frame)
+#     while keyboard.is_pressed('q') == False: #run until q is pressed
+        
+#         # click hold for both characters before grabbing screenshot
+#         #pyautogui.click(822, 876)
+#         #pyautogui.click(966, 876)
+#         #raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
+#         #gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
+#         # 
+#         #
 
-            
+        
 
-#             if cv2.waitKey(25) & 0xFF == ord("q"):
-#                 cv2.destroyAllWindows()
-#                 break
+#         if cv2.waitKey(25) & 0xFF == ord("q"):
+#             cv2.destroyAllWindows()
+#             break
 
 def gatherAttackScores(LAttackPos, RAttackPos, target_W, t_Window_Scale):
     m = 0
@@ -136,7 +140,7 @@ def gatherAttackScores(LAttackPos, RAttackPos, target_W, t_Window_Scale):
 #     0, #5 right_hit
 #     200, #6 X_dif (Always Posistive X distance between both players predictions)
 #     80, #7 Y_dif (Always Posistive Y distance between both players predictions)
-# ]
+# ] #add off some way to indicate off the ground potentially as that can be disadvantaguoes 
 def getScoreOfAttack(t_W, t_W_Scale):
     attackData = np.zeros[8] #Array of move data
 
@@ -144,15 +148,38 @@ def getScoreOfAttack(t_W, t_W_Scale):
     gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
 
     #damage is found by looking at healthbar 
-    y_MidHealthbar = math.ceil(t_W_Scale[1] * 78) # Roughly middle of healthbar
-    x_LeftHealthbarStart = math.ceil(t_W_Scale[0] * 230) # this includes some padding 
-    x_LeftHealthbarEnd = math.floor(t_W_Scale[0] * 880)
-    x_RightHealthbarStart = math.floor(t_W_Scale[0] * 1680) # note that right's heath bar goes from right to left
-    x_RightHealthbarEnd = math.ceil(t_W_Scale[0] * 1040)
+    healthState = getHealth(t_W, t_W_Scale)
+    attackData[0] = leftPlayerState[0] - healthState[0]
+    attackData[1] = rightPlayerState[0] - healthState[1]
+
+
 
 
     return attackData
     
+def getHealth(target_W, t_Window_Scale, gFrame):
+    leftHealth = leftPlayerState[0]
+    rightHealth = rightPlayerState[0]
+    y_MidHealthbar = target_W[0] + math.ceil(t_Window_Scale[1] * 78) # Roughly middle of healthbar
+    x_LeftHealthbarStart = target_W[1] + math.ceil(t_Window_Scale[0] * 230) # this includes some padding 
+    x_LeftHealthbarEnd = target_W[1] + math.floor(t_Window_Scale[0] * 880)
+    x_RightHealthbarStart = target_W[1] + math.floor(t_Window_Scale[0] * 1680) # note that right's heath bar goes from right to left
+    x_RightHealthbarEnd = target_W[1] + math.ceil(t_Window_Scale[0] * 1040)
+    for x in range(x_LeftHealthbarStart, x_LeftHealthbarEnd): #find first pixel of normal healthbar
+        if gFrame[y_MidHealthbar][x] == 204:
+            healthBar = 1-((x-x_LeftHealthbarStart)/(x_LeftHealthbarEnd-x_LeftHealthbarStart))# essentially if it was found 1/4 way through is would set healthBar to .75
+            if (healthBar < (leftHealth - .025)): #Only update if health difference is larger than 2.5%
+                leftHealth = healthBar
+            break
+
+    for x in range(x_RightHealthbarStart, x_RightHealthbarEnd, -1): #find first pixel of normal healthbar
+        if gFrame[y_MidHealthbar][x] == 204:
+            healthBar = 1-((x_RightHealthbarStart-x)/(x_RightHealthbarStart-x_RightHealthbarEnd))# essentially if it was found 1/4 way through is would set healthBar to .75
+            if (healthBar < (rightHealth - .025)): #Only update if health difference is larger than 2.5%
+                rightHealth = healthBar
+            break
+    return [leftHealth, rightHealth]    
+
 
 def findButtons(side, attackOptions, attackButtonsPos, lock_In, window, gray_frame):
     scale_x = window["width"] / 1920 #For example if window is 960x540 then scale_x = 0.5 and scale_y = 0.5
@@ -196,7 +223,21 @@ def findButtons(side, attackOptions, attackButtonsPos, lock_In, window, gray_fra
     lock_In[0] = x;
     lock_In[1] = y;
 
-
+# exPlayerState = [
+#     .89 #playerHealth
+    
+# ]
+def findPlayersState(LAttackPos, RAttackPos, t_Window, t_Window_Scale):
+    lx, ly = LAttackPos[len(LAttackPos)-1] #Grab coordinates from array
+    rx, ry = RAttackPos[len(RAttackPos)-1] #Grab coordinates from array
+    pyautogui.click(lx, ly) #Click at coordinates
+    pyautogui.click(rx, ry) #Click at coordinates
+    time.sleep(.02)#Very short pause
+    raw_frame = np.array(sct.grab(t_Window))
+    gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
+    healthState = getHealth(t_Window, t_Window_Scale, gray_frame)
+    leftPlayerState[0] = healthState[0]
+    rightPlayerState[0] = healthState[1]
 
 
 if __name__ == "__main__":
