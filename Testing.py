@@ -11,11 +11,15 @@ pyautogui.PAUSE = 0     #removes .1 delay between pyautogui actions
 global leftPlayerState 
 global rightPlayerState
 global sct
+global yomiTXT_NUM
+global yomiTXT_f
 
 def running_loop():
     target_Window = {"top": 0, "left": 0, "width": 1920, "height": 1080}
     #Format raw_frame[y][x][0]
     
+    yomiTXT_NUM = cv2.imread('YOMITXTJPG.jpg', cv2.IMREAD_GRAYSCALE)
+    yomiTXT_f = cv2.imread('YOMITXT_f.jpg', cv2.IMREAD_GRAYSCALE)
     list_of_left_attack_options = []
     list_of_left_attack_buttons_pos = []
     list_of_right_attack_options = []
@@ -152,11 +156,45 @@ def getScoreOfAttack(t_W, t_W_Scale):
     attackData[0] = leftPlayerState[0] - healthState[0]
     attackData[1] = rightPlayerState[0] - healthState[1]
 
+    #ready and hit frame found via template matching text (passes in grayframe cropped to the area we want)
+    cropped_g_frame = gray_frame[270:291, 825:920]
+    attackData[2] = getTextOneWindow(cropped_g_frame) # left ready
+    cropped_g_frame = gray_frame[270:291, 1197:1250]
+    attackData[3] = getTextOneWindow(cropped_g_frame) # right ready
+    cropped_g_frame = gray_frame[300:321, 825:920]
+    attackData[4] = getTextOneWindow(cropped_g_frame) # left hit
+    cropped_g_frame = gray_frame[300:321, 1197:1250]
+    attackData[5] = getTextOneWindow(cropped_g_frame) # right hit
 
-
+    
 
     return attackData
-    
+
+#logic could be harder and slow down for trying to do custom scale so start with just one window logic
+def getTextOneWindow(target):
+    #First scane for 'f' to where digits are located
+    result = 0
+    threshold = 0.15
+    res = cv2.matchTemplate(target, yomiTXT_f, cv2.TM_SQDIFF)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    if (min_val > threshold):
+        return 0 #if no match return 0 
+    top_left_x = min_loc[0] 
+    w, h = target.shape[::-1]
+    crop_Digit1 = target[0:h, top_left_x-36:top_left_x-22] #Leave Y untouched and crop the 14 pixels wide number 
+    crop_Digit2 = target[0:h, top_left_x-18:top_left_x-4] #Leave Y untouched and crop the 14 pixels wide number 
+    res1 = cv2.matchTemplate(yomiTXT_NUM, crop_Digit1, cv2.TM_SQDIFF) # Note here the template is our cropped image
+    res2 = cv2.matchTemplate(yomiTXT_NUM, crop_Digit2, cv2.TM_SQDIFF) # Note here the template is our cropped image
+    min_val1, max_val1, min_loc1, max_loc1 = cv2.minMaxLoc(res1)
+    min_val2, max_val2, min_loc2, max_loc2 = cv2.minMaxLoc(res2)
+    if (min_val1 < threshold):
+        top_left_x = min_loc1[0]
+        result += 10 * (top_left_x // 18) # converts from array posistion to number then 10* since it's ten's digit
+    top_left_x = min_loc2[0]
+    result += (top_left_x // 18)
+    return result
+
+
 def getHealth(target_W, t_Window_Scale, gFrame):
     leftHealth = leftPlayerState[0]
     rightHealth = rightPlayerState[0]
