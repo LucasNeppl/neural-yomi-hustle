@@ -6,6 +6,11 @@ import pyautogui
 import time
 import math
 
+
+
+
+
+
 pyautogui.PAUSE = 0     #removes .1 delay between pyautogui actions
 
 global leftPlayerState 
@@ -88,15 +93,14 @@ def running_loop():
 #     sct = MSS()
 #     raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
 #     gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY) # converts to gray scale single value
-#     cv2.imshow('GrayFrame: ', gray_frame)
+#     cv2.imshow('GrayFrame: ', raw_frame)
 #     while keyboard.is_pressed('q') == False: #run until q is pressed
-        
 #         # click hold for both characters before grabbing screenshot
 #         #pyautogui.click(822, 876)
-#         #pyautogui.click(966, 876)
+#         #pyautogui.click(966, 876)q
 #         #raw_frame = np.array(sct.grab(target_window)) #grab the screen. In format of R, G, B, A
 #         #gray_frame = cv2.cvtColor(raw_frame, cv2.COLOR_BGR2GRAY)
-#         # 
+#         # qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq
 #         #
 
         
@@ -169,6 +173,12 @@ def getScoreOfAttack(t_W, t_W_Scale):
     
 
     return attackData
+
+def getPos():
+
+    #masked image should be all black or white pixels
+    kernel = np.ones((5,5),np.uint8)
+    opening = cv2.morphologyEx(masked_img, cv2.MORPH_OPEN, kernel)
 
 #logic could be harder and slow down for trying to do custom scale so start with just one window logic
 def getTextOneWindow(target):
@@ -282,4 +292,4 @@ if __name__ == "__main__":
     
     
     running_loop()
-    #testing_screenshot()
+    # testing_screenshot()
